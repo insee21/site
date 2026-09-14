@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Форма</title>
+    <title>Форма с выводом данных</title>
     <style>
-        body {
+        /* Основной контейнер, чтобы форма была слева, а вывод — справа */
+        .main-container {
+            display: flex;
+            gap: 40px;
             font-family: Arial, sans-serif;
             margin: 20px;
-            max-width: 600px;
+            max-width: 1000px;
+        }
+        
+        /* Стили формы строго по картинке */
+        .form-side {
+            width: 500px;
+            flex-shrink: 0;
         }
         h2 {
             font-family: "Times New Roman", Times, serif;
@@ -16,6 +25,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 25px;
+            margin-top: 0;
         }
         .form-group {
             margin-bottom: 15px;
@@ -56,81 +66,182 @@
         .buttons-container {
             margin-top: 25px;
         }
-        input[type="submit"], input[type="reset"] {
+        input[type="button"], input[type="reset"] {
             padding: 5px 20px;
             margin-right: 10px;
             font-size: 14px;
             cursor: pointer;
         }
+
+        /* Правая панель для вывода результатов */
+        .result-side {
+            flex-grow: 1;
+            border-left: 2px dashed #ccc;
+            padding-left: 40px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            height: fit-content;
+        }
+        .result-side h2 {
+            text-transform: none;
+            font-family: Arial, sans-serif;
+            font-size: 22px;
+            color: #333;
+        }
+        .result-item {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .result-item strong {
+            color: #555;
+        }
+        .result-text-box {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 50px;
+            white-space: pre-wrap;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <h2>Анкета</h2>
-
-    <form action="#" method="post">
+    <div class="main-container">
         
-        <!-- Блок Имя -->
-        <div class="form-group">
-            <label for="username">Вше имя</label>
-            <input type="text" id="username" name="username">
-        </div>
-
-        <!-- Блок Пол -->
-        <div class="form-group">
-            <label>Ваш пол</label>
-            <div class="radio-group">
-                <div class="radio-item">
-                    <input type="radio" id="gender-female" name="gender" value="female">
-                    <label style="width: auto;" for="gender-female">женский</label>
+        <!-- ЛЕВАЯ СТОРОНА: ФОРМА -->
+        <div class="form-side">
+            <h2>Анкета</h2>
+            <form id="anketaForm">
+                
+                <div class="form-group">
+                    <label for="username">Вше имя</label>
+                    <input type="text" id="username" name="username">
                 </div>
-                <div class="radio-item">
-                    <input type="radio" id="gender-male" name="gender" value="male">
-                    <label style="width: auto;" for="gender-male">мужской</label>
+
+                <div class="form-group">
+                    <label>Ваш пол</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="gender-female" name="gender" value="женский">
+                            <label style="width: auto;" for="gender-female">женский</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="gender-male" name="gender" value="мужской">
+                            <label style="width: auto;" for="gender-male">мужской</label>
+                        </div>
+                    </div>
                 </div>
+
+                <h3>На каком курсе вы учитесь?</h3>
+                <select name="course" id="course">
+                    <option value="первый">первый</option>
+                    <option value="второй">второй</option>
+                    <option value="третий">третий</option>
+                    <option value="четвертый">четвертый</option>
+                    <option value="пятый">пятый</option>
+                </select>
+
+                <h3>Какие языки программирования вы знаете?</h3>
+                <div class="checkbox-group">
+                    <div>
+                        <input type="checkbox" id="lang-pascal" name="languages" value="Паскаль">
+                        <label style="width: auto;" for="lang-pascal">Паскаль</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="lang-c" name="languages" value="СИ">
+                        <label style="width: auto;" for="lang-c">СИ</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="lang-assembler" name="languages" value="Ассемблер">
+                        <label style="width: auto;" for="lang-assembler">Ассемблер</label>
+                    </div>
+                </div>
+
+                <h3>Напишите несколько слов о себе</h3>
+                <div>
+                    <textarea id="about" name="about"></textarea>
+                </div>
+
+                <div class="buttons-container">
+                    <input type="button" id="submitBtn" value="Отправка данных">
+                    <input type="reset" id="resetBtn" value="Сброс значений полей">
+                </div>
+
+            </form>
+        </div>
+
+        <!-- ПРАВАЯ СТОРОНА: ВЫВОД ДАННЫХ -->
+        <div class="result-side">
+            <h2>Вы ввели:</h2>
+            
+            <div class="result-item">
+                <strong>Имя:</strong> <span id="res-name">—</span>
+            </div>
+            
+            <div class="result-item">
+                <strong>Пол:</strong> <span id="res-gender">—</span>
+            </div>
+            
+            <div class="result-item">
+                <strong>Курс:</strong> <span id="res-course">первый</span>
+            </div>
+            
+            <div class="result-item">
+                <strong>Языки:</strong> <span id="res-langs">ничего не выбрано</span>
+            </div>
+            
+            <div class="result-item">
+                <strong>О себе:</strong>
+                <div class="result-text-box" id="res-about">—</div>
             </div>
         </div>
 
-        <!-- Блок Курс -->
-        <h3>На каком курсе вы учитесь?</h3>
-        <select name="course">
-            <option value="1">первый</option>
-            <option value="2">второй</option>
-            <option value="3">третий</option>
-            <option value="4">четвертый</option>
-            <option value="5">пятый</option>
-        </select>
+    </div>
 
-        <!-- Блок Языки программирования -->
-        <h3>Какие языки программирования вы знаете?</h3>
-        <div class="checkbox-group">
-            <div>
-                <input type="checkbox" id="lang-pascal" name="languages" value="pascal">
-                <label style="width: auto;" for="lang-pascal">Паскаль</label>
-            </div>
-            <div>
-                <input type="checkbox" id="lang-c" name="languages" value="c">
-                <label style="width: auto;" for="lang-c">СИ</label>
-            </div>
-            <div>
-                <input type="checkbox" id="lang-assembler" name="languages" value="assembler">
-                <label style="width: auto;" for="lang-assembler">Ассемблер</label>
-            </div>
-        </div>
+    <!-- СКРИПТ ДЛЯ ЖИВОГО ОБНОВЛЕНИЯ ДАННЫХ -->
+    <script>
+        const form = document.getElementById('anketaForm');
 
-        <!-- Блок О себе -->
-        <h3>Напишите несколько слов о себе</h3>
-        <div>
-            <textarea name="about"></textarea>
-        </div>
+        function updatePreview() {
+            // 1. Имя
+            const nameInput = document.getElementById('username').value;
+            document.getElementById('res-name').textContent = nameInput || '—';
 
-        <!-- Кнопки управления -->
-        <div class="buttons-container">
-            <input type="submit" value="Отправка данных">
-            <input type="reset" value="Сброс значений полей">
-        </div>
+            // 2. Пол
+            const genderInput = form.querySelector('input[name="gender"]:checked');
+            document.getElementById('res-gender').textContent = genderInput ? genderInput.value : '—';
 
-    </form>
+            // 3. Курс
+            const courseSelect = document.getElementById('course').value;
+            document.getElementById('res-course').textContent = courseSelect;
+
+            // 4. Языки программирования
+            const checkedLangs = form.querySelectorAll('input[name="languages"]:checked');
+            const langsArray = [];
+            checkedLangs.forEach(cb => langsArray.push(cb.value));
+            document.getElementById('res-langs').textContent = langsArray.length > 0 ? langsArray.join(', ') : 'ничего не выбрано';
+
+            // 5. О себе
+            const aboutText = document.getElementById('about').value;
+            document.getElementById('res-about').textContent = aboutText || '—';
+        }
+
+        // Слушаем любые изменения в форме для мгновенного вывода
+        form.addEventListener('input', updatePreview);
+        form.addEventListener('change', updatePreview);
+
+        // При сбросе формы очищаем и правое окно
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            setTimeout(updatePreview, 50);
+        });
+
+        // Кнопка отправки просто фиксирует данные всплывающим окном alert
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            alert('Данные зафиксированы и выведены справа!');
+        });
+    </script>
 
 </body>
 </html>
