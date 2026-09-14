@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Таблица</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse; /* Убирает двойные границы */
+        }
+        td {
+            border: 1px solid black; /* Черная граница толщиной 1px */
+            height: 30px; /* Высота строк */
+            width: 10%; /* Равномерная ширина для 5 столбцов */
+        }
+    </style>
+</head>
+<body>
+
+    <table>
+        <tr>
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+    </table>
+
+
+
+<body>
+
+    <table>
+       
+        <tr>
+            <td colspan="5"></td>
+        </tr>
+        
+        
+        <tr>
+            <td rowspan="4"></td> 
+            <td></td>
+            <td rowspan="4"></td> 
+            <td></td>
+            <td></td>             
+        </tr>
+        
+        
+        <tr>
+            <td rowspan="3"></td> 
+            <td rowspan="3"></td> 
+            <td></td>             
+        </tr>
+        
+        
+        <tr>
+            <td></td>             
+        </tr>
+        
+        
+        <tr>
+            <td></td>             
+        </tr>
+        
+        
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>             
+        </tr>
+    </table>
+
+</body>
+ 
+<body>
+
+    <table>
+        <!-- Строка 1: Самая верхняя длинная полоса спирали -->
+        <tr>
+            <td colspan="10"></td>
+        </tr>
+        <!-- Строка 2 -->
+        <tr>
+            <td rowspan="8"></td> <!-- Левая внешняя стена -->
+            <td colspan="8"></td> <!-- Верхний внутренний виток -->
+            <td rowspan="8"></td> <!-- Правая внешняя стена -->
+        </tr>
+        <!-- Строка 3 -->
+        <tr>
+            <td rowspan="6"></td> <!-- Левый виток 2 -->
+            <td colspan="6"></td> <!-- Верхний виток 3 -->
+            <td rowspan="6"></td> <!-- Правый виток 2 -->
+        </tr>
+        <!-- Строка 4 -->
+        <tr>
+            <td rowspan="4"></td> <!-- Левый виток 3 -->
+            <td colspan="4"></td> <!-- Верхний виток 4 -->
+            <td rowspan="4"></td> <!-- Правый виток 3 -->
+        </tr>
+        <!-- Строка 5: Центр (два финальных квадрата) -->
+        <tr>
+            <td colspan="2"></td>
+            <td colspan="2"></td>
+        </tr>
+        <!-- Строка 6 -->
+        <tr>
+            <td colspan="4"></td> <!-- Нижний виток 4 -->
+        </tr>
+        <!-- Строка 7 -->
+        <tr>
+            <td colspan="6"></td> <!-- Нижний виток 3 -->
+        </tr>
+        <!-- Строка 8 -->
+        <tr>
+            <td colspan="8"></td> <!-- Нижний виток 2 -->
+        </tr>
+        <!-- Строка 9: Самая нижняя длинная полоса спирали -->
+        <tr>
+            <td colspan="10"></td>
+        </tr>
+    </table>
+
+</body>
+</html>
