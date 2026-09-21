@@ -8,10 +8,10 @@
 
     <h2>Анкета</h2>
 
-    <!-- Используем таблицу, чтобы форма была слева, а вывод — справа -->
+    <!-- Обычная таблица для разделения экрана: форма слева, вывод справа -->
     <table border="0" cellpadding="10" cellspacing="0">
         <tr>
-            <!-- Левая колонка: Сама форма -->
+            <!-- Левая колонка: Форма -->
             <td valign="top" width="400">
                 <form id="surveyForm">
                     <p>
@@ -66,13 +66,13 @@
                 </form>
             </td>
 
-            <!-- Правая колонка: Что ввел пользователь -->
+            <!-- Правая колонка: Данные появляются здесь только после клика -->
             <td valign="top" style="border-left: 1px solid #ccc; padding-left: 20px;">
                 <h3>Вы ввели:</h3>
                 <p>Имя: <span id="viewName">—</span></p>
                 <p>Город: <span id="viewCity">—</span></p>
                 <p>Пол: <span id="viewGender">—</span></p>
-                <p>Курс: <span id="viewCourse">Не выбран</span></p>
+                <p>Курс: <span id="viewCourse">—</span></p>
                 <p>Языки: <span id="viewLanguages">—</span></p>
                 <p>О себе: <span id="viewAbout">—</span></p>
             </td>
@@ -82,24 +82,35 @@
     <script>
         const form = document.getElementById('surveyForm');
 
-        function updatePreview() {
+        // Функция срабатывает ТОЛЬКО при отправке формы
+        form.addEventListener('submit', function(event) {
+            // Отменяем перезагрузку страницы, чтобы данные не исчезли
+            event.preventDefault(); 
+
+            // Считываем и выводим текстовые поля
             document.getElementById('viewName').textContent = form.username.value || '—';
             document.getElementById('viewCity').textContent = form.city.value || '—';
             document.getElementById('viewCourse').textContent = form.course.value;
             document.getElementById('viewAbout').textContent = form.about.value || '—';
 
+            // Пол (радиокнопки)
             const genderChecked = form.querySelector('input[name="gender"]:checked');
             document.getElementById('viewGender').textContent = genderChecked ? genderChecked.value : '—';
 
+            // Языки (чекбоксы)
             const langBoxes = form.querySelectorAll('input[name="languages"]:checked');
             const selectedLangs = Array.from(langBoxes).map(box => box.value);
             document.getElementById('viewLanguages').textContent = selectedLangs.length > 0 ? selectedLangs.join(', ') : '—';
-        }
+        });
 
-        form.addEventListener('input', updatePreview);
-        form.addEventListener('change', updatePreview);
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            setTimeout(updatePreview, 10);
+        // При полном сбросе формы очищаем и блок вывода справа
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            document.getElementById('viewName').textContent = '—';
+            document.getElementById('viewCity').textContent = '—';
+            document.getElementById('viewGender').textContent = '—';
+            document.getElementById('viewCourse').textContent = '—';
+            document.getElementById('viewLanguages').textContent = '—';
+            document.getElementById('viewAbout').textContent = '—';
         });
     </script>
 
