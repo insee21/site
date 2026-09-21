@@ -2,199 +2,122 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Форма с выводом данных</title>
+    <title>Анкета с предпросмотром</title>
     <style>
-        /* Основной контейнер, чтобы форма была слева, а вывод — справа */
-        .main-container {
-            display: flex;
-            gap: 40px;
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            max-width: 1000px;
-        }
-        
-        /* Стили формы строго по картинке */
-        .form-side {
-            width: 500px;
-            flex-shrink: 0;
-        }
-        h2 {
-            font-family: "Times New Roman", Times, serif;
-            font-size: 28px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 25px;
-            margin-top: 0;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: inline-block;
-            width: 90px;
-            vertical-align: top;
-        }
-        .form-group input[type="text"] {
-            width: 180px;
-            padding: 2px;
-        }
-        .radio-group {
-            display: inline-block;
-        }
-        .radio-item {
-            margin-bottom: 5px;
-        }
-        h3 {
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 25px;
-            margin-bottom: 15px;
-        }
-        select {
-            width: 150px;
-            padding: 2px;
-        }
-        .checkbox-group {
-            line-height: 1.6;
-        }
-        textarea {
-            width: 450px;
-            height: 180px;
-            resize: none;
-        }
-        .buttons-container {
-            margin-top: 25px;
-        }
-        input[type="button"], input[type="reset"] {
-            padding: 5px 20px;
-            margin-right: 10px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        /* Правая панель для вывода результатов */
-        .result-side {
-            flex-grow: 1;
-            border-left: 2px dashed #ccc;
-            padding-left: 40px;
+        body { 
+            font-family: sans-serif; 
+            margin: 20px; 
             background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            height: fit-content;
         }
-        .result-side h2 {
-            text-transform: none;
-            font-family: Arial, sans-serif;
-            font-size: 22px;
-            color: #333;
+        /* Сетка для разделения экрана на форму и просмотр */
+        .container { 
+            display: flex; 
+            gap: 40px; 
+            max-width: 900px; 
+            margin: 0 auto; 
         }
-        .result-item {
-            margin-bottom: 15px;
-            font-size: 16px;
+        .form-section, .preview-section { 
+            flex: 1; 
+            background: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
         }
-        .result-item strong {
-            color: #555;
+        .preview-section {
+            background-color: #f0f7ff;
+            border-left: 4px solid #007bff;
         }
-        .result-text-box {
-            background: #fff;
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .inline-label { display: inline; font-weight: normal; margin-right: 15px; }
+        input[type="text"], textarea, select { 
+            width: 100%; 
+            padding: 8px; 
+            box-sizing: border-box; 
             border: 1px solid #ccc;
-            padding: 10px;
-            min-height: 50px;
-            white-space: pre-wrap;
-            margin-top: 5px;
+            border-radius: 4px;
         }
+        .preview-item { margin-bottom: 12px; }
+        .preview-item strong { color: #333; }
+        button { padding: 10px 15px; border-radius: 4px; border: none; cursor: pointer; }
+        button[type="submit"] { background: #007bff; color: white; }
+        button[type="reset"] { background: #6c757d; color: white; }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
+    <div class="container">
         
-        <!-- ЛЕВАЯ СТОРОНА: ФОРМА -->
-        <div class="form-side">
+        <!-- ЛЕВАЯ ЧАСТЬ: ФОРМА ВВОДА -->
+        <div class="form-section">
             <h2>Анкета</h2>
-            <form id="anketaForm">
+            <form id="surveyForm">
                 
                 <div class="form-group">
-                    <label for="username">Вше имя</label>
-                    <input type="text" id="username" name="username">
+                    <label for="username">Ваше имя:</label>
+                    <input type="text" id="username" name="username" placeholder="Введите имя">
                 </div>
 
                 <div class="form-group">
-                    <label>Ваш пол</label>
-                    <div class="radio-group">
-                        <div class="radio-item">
-                            <input type="radio" id="gender-female" name="gender" value="женский">
-                            <label style="width: auto;" for="gender-female">женский</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="gender-male" name="gender" value="мужской">
-                            <label style="width: auto;" for="gender-male">мужской</label>
-                        </div>
-                    </div>
+                    <label for="city">Из какого вы города?</label>
+                    <input type="text" id="city" name="city" placeholder="Например: Москва">
                 </div>
 
-                <h3>На каком курсе вы учитесь?</h3>
-                <select name="course" id="course">
-                    <option value="первый">первый</option>
-                    <option value="второй">второй</option>
-                    <option value="третий">третий</option>
-                    <option value="четвертый">четвертый</option>
-                    <option value="пятый">пятый</option>
-                </select>
-
-                <h3>Какие языки программирования вы знаете?</h3>
-                <div class="checkbox-group">
-                    <div>
-                        <input type="checkbox" id="lang-pascal" name="languages" value="Паскаль">
-                        <label style="width: auto;" for="lang-pascal">Паскаль</label>
-                    </div>
-                    <div>
-                        <input type="checkbox" id="lang-c" name="languages" value="СИ">
-                        <label style="width: auto;" for="lang-c">СИ</label>
-                    </div>
-                    <div>
-                        <input type="checkbox" id="lang-assembler" name="languages" value="Ассемблер">
-                        <label style="width: auto;" for="lang-assembler">Ассемблер</label>
-                    </div>
+                <div class="form-group">
+                    <label>Ваш пол:</label>
+                    <input type="radio" id="female" name="gender" value="Женский">
+                    <label for="female" class="inline-label">Женский</label>
+                    
+                    <input type="radio" id="male" name="gender" value="Мужской">
+                    <label for="male" class="inline-label">Мужской</label>
                 </div>
 
-                <h3>Напишите несколько слов о себе</h3>
+                <div class="form-group">
+                    <label for="course">На каком курсе вы учитесь?</label>
+                    <select id="course" name="course">
+                        <option value="Не выбран">-- Выберите курс --</option>
+                        <option value="1 курс">Первый</option>
+                        <option value="2 курс">Второй</option>
+                        <option value="3 курс">Третий</option>
+                        <option value="4 курс">Четвертый</option>
+                        <option value="5 курс">Пятый</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Какие языки программирования вы знаете?</label>
+                    <input type="checkbox" id="pascal" name="languages" value="Паскаль">
+                    <label for="pascal" class="inline-label">Паскаль</label>
+                    
+                    <input type="checkbox" id="c" name="languages" value="Си">
+                    <label for="c" class="inline-label">Си</label>
+                    
+                    <input type="checkbox" id="assembler" name="languages" value="Ассемблер">
+                    <label for="assembler" class="inline-label">Ассемблер</label>
+                </div>
+
+                <div class="form-group">
+                    <label for="about">Напишите несколько слов о себе:</label>
+                    <textarea id="about" name="about" rows="3" placeholder="Расскажите о себе..."></textarea>
+                </div>
+
                 <div>
-                    <textarea id="about" name="about"></textarea>
+                    <button type="submit">Отправить данные</button>
+                    <button type="reset" id="resetBtn">Сбросить</button>
                 </div>
-
-                <div class="buttons-container">
-                    <input type="button" id="submitBtn" value="Отправка данных">
-                    <input type="reset" id="resetBtn" value="Сброс значений полей">
-                </div>
-
             </form>
         </div>
 
-        <!-- ПРАВАЯ СТОРОНА: ВЫВОД ДАННЫХ -->
-        <div class="result-side">
+        <!-- ПРАВАЯ ЧАСТЬ: ТИПО ЧТО ТЫ ВВЕЛ (ПРЕДПРОСМОТР) -->
+        <div class="preview-section">
             <h2>Вы ввели:</h2>
-            
-            <div class="result-item">
-                <strong>Имя:</strong> <span id="res-name">—</span>
-            </div>
-            
-            <div class="result-item">
-                <strong>Пол:</strong> <span id="res-gender">—</span>
-            </div>
-            
-            <div class="result-item">
-                <strong>Курс:</strong> <span id="res-course">первый</span>
-            </div>
-            
-            <div class="result-item">
-                <strong>Языки:</strong> <span id="res-langs">ничего не выбрано</span>
-            </div>
-            
-            <div class="result-item">
-                <strong>О себе:</strong>
-                <div class="result-text-box" id="res-about">—</div>
+            <div id="previewData">
+                <div class="preview-item"><strong>Имя:</strong> <span id="viewName">—</span></div>
+                <div class="preview-item"><strong>Город:</strong> <span id="viewCity">—</span></div>
+                <div class="preview-item"><strong>Пол:</strong> <span id="viewGender">—</span></div>
+                <div class="preview-item"><strong>Курс:</strong> <span id="viewCourse">Не выбран</span></div>
+                <div class="preview-item"><strong>Языки:</strong> <span id="viewLanguages">—</span></div>
+                <div class="preview-item"><strong>О себе:</strong> <span id="viewAbout">—</span></div>
             </div>
         </div>
 
@@ -202,44 +125,32 @@
 
     <!-- СКРИПТ ДЛЯ ЖИВОГО ОБНОВЛЕНИЯ ДАННЫХ -->
     <script>
-        const form = document.getElementById('anketaForm');
+        const form = document.getElementById('surveyForm');
 
         function updatePreview() {
-            // 1. Имя
-            const nameInput = document.getElementById('username').value;
-            document.getElementById('res-name').textContent = nameInput || '—';
+            // Текстовые поля и селект
+            document.getElementById('viewName').textContent = form.username.value || '—';
+            document.getElementById('viewCity').textContent = form.city.value || '—';
+            document.getElementById('viewCourse').textContent = form.course.value;
+            document.getElementById('viewAbout').textContent = form.about.value || '—';
 
-            // 2. Пол
-            const genderInput = form.querySelector('input[name="gender"]:checked');
-            document.getElementById('res-gender').textContent = genderInput ? genderInput.value : '—';
+            // Радиокнопки (Пол)
+            const genderChecked = form.querySelector('input[name="gender"]:checked');
+            document.getElementById('viewGender').textContent = genderChecked ? genderChecked.value : '—';
 
-            // 3. Курс
-            const courseSelect = document.getElementById('course').value;
-            document.getElementById('res-course').textContent = courseSelect;
-
-            // 4. Языки программирования
-            const checkedLangs = form.querySelectorAll('input[name="languages"]:checked');
-            const langsArray = [];
-            checkedLangs.forEach(cb => langsArray.push(cb.value));
-            document.getElementById('res-langs').textContent = langsArray.length > 0 ? langsArray.join(', ') : 'ничего не выбрано';
-
-            // 5. О себе
-            const aboutText = document.getElementById('about').value;
-            document.getElementById('res-about').textContent = aboutText || '—';
+            // Чекбоксы (Языки)
+            const langBoxes = form.querySelectorAll('input[name="languages"]:checked');
+            const selectedLangs = Array.from(langBoxes).map(box => box.value);
+            document.getElementById('viewLanguages').textContent = selectedLangs.length > 0 ? selectedLangs.join(', ') : '—';
         }
 
-        // Слушаем любые изменения в форме для мгновенного вывода
+        // Следим за любыми изменениями в форме
         form.addEventListener('input', updatePreview);
         form.addEventListener('change', updatePreview);
 
-        // При сбросе формы очищаем и правое окно
+        // Сброс превью при нажатии кнопки очистки
         document.getElementById('resetBtn').addEventListener('click', () => {
-            setTimeout(updatePreview, 50);
-        });
-
-        // Кнопка отправки просто фиксирует данные всплывающим окном alert
-        document.getElementById('submitBtn').addEventListener('click', () => {
-            alert('Данные зафиксированы и выведены справа!');
+            setTimeout(updatePreview, 10); // небольшая задержка, чтобы поля успели очиститься
         });
     </script>
 
