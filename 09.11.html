@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Кубики</title>
+    <style>
+        /* Просто делаем символы большими, чтобы выглядели как кубики */
+        body {
+            font-size: 35px;
+            line-height: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        for (var i = 1; i <= 10; i++) {
+            for (var j = 1; j <= 10; j++) {
+                
+                // Проверка для лесенки
+                if (i + j <= 10	) {
+                    // Голубой кубик
+                    document.write('<span style="color: lightblue;">■</span>');
+                } else {
+                    // Синий кубик
+                    document.write('<span style="color: blue;">■</span>');
+                }
+                
+            }
+            // Перенос строки в конце ряда
+            document.write('<br>');
+        }
+    </script>
+
+</body>
+</html>
