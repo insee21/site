@@ -1,35 +1,85 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Кубики</title>
-    <style>
-        /* Просто делаем символы большими, чтобы выглядели как кубики */
-        body {
-            font-size: 35px;
-            line-height: 0.9;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Состав персонального компьютера</title>
+    <link rel="stylesheet" href="16.11.css">
 </head>
 <body>
 
-    <script>
-        for (var i = 1; i <= 10; i++) {
-            for (var j = 1; j <= 10; j++) {
-                
-                // Проверка для лесенки
-                if (i + j <= 10	) {
-                    // Голубой кубик
-                    document.write('<span style="color: lightblue;">■</span>');
-                } else {
-                    // Синий кубик
-                    document.write('<span style="color: blue;">■</span>');
-                }
-                
-            }
-            // Перенос строки в конце ряда
-            document.write('<br>');
-        }
-    </script>
-<div id="menu"><script language="JavaScript" src="menu.js" type="text/javascript"></script></div><br>
+    <div id="menu"><script language="JavaScript" src="menu.js" type="text/javascript"></script></div>
+
+    <div class="container">
+        <h1>Состав персонального компьютера</h1>
+
+        <section class="list-block">
+            <h2>1. Основные внутренние комплектующие (Маркированный список)</h2>
+            <ul class="fire-list">
+                <li>Центральный процессор (CPU)</li>
+                <li>Материнская плата</li>
+                <li>Оперативная память (RAM)</li>
+                <li>Видеокарта (GPU)</li>
+                <li>Накопители данных (SSD и HDD)</li>
+                <li>Блок питания (PSU)</li>
+                <li>Система охлаждения и корпус</li>
+            </ul>
+        </section>
+
+        <section class="list-block">
+            <h2>2. Порядок сборки системного блока (Нумерованный список)</h2>
+            <ol class="numbered-list">
+                <li>Подготовка корпуса и установка блока питания.</li>
+                <li>Установка процессора и оперативной памяти в материнскую плату.</li>
+                <li>Монтаж системы охлаждения на процессор.</li>
+                <li>Закрепление материнской платы внутри корпуса.</li>
+                <li>Установка накопителей (SSD M.2 или SATA) и видеокарты.</li>
+                <li>Подключение всех кабелей питания и передней панели.</li>
+                <li>Первый запуск и настройка BIOS.</li>
+            </ol>
+        </section>
+
+        <section class="list-block">
+            <h2>3. Полная архитектура ПК (Многоуровневый список)</h2>
+            <ul class="multilevel-list">
+                <li><strong>Системный блок</strong>
+                    <ol>
+                        <li>Вычислительные компоненты:
+                            <ul>
+                                <li>Процессор (Intel или AMD)</li>
+                                <li>Видеокарта (дискретная или встроенная)</li>
+                            </ul>
+                        </li>
+                        <li>Память:
+                            <ul>
+                                <li>Оперативная (DDR4, DDR5)</li>
+                                <li>Постоянная (NVMe SSD, SATA SSD, жёсткие диски)</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </li>
+                <li><strong>Периферийные устройства</strong>
+                    <ol>
+                        <li>Устройства ввода:
+                            <ul>
+                                <li>Клавиатура</li>
+                                <li>Компьютерная мышь</li>
+                                <li>Микрофон и веб-камера</li>
+                            </ul>
+                        </li>
+                        <li>Устройства вывода:
+                            <ul>
+                                <li>Монитор</li>
+                                <li>Акустическая система или наушники</li>
+                                <li>Принтер</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </li>
+            </ul>
+        </section>
+    </div>
+
 </body>
 </html>
