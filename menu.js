@@ -17,7 +17,9 @@ document.write(
     ' ' +
     '<button onclick="location.href=\'play and  video.html\'">Плеер и видео</button>'+
     ' ' +
-    '<button onclick="location.href=\'09.11.html\'">09.11</button>'
+    '<button onclick="location.href=\'09.11.html\'">09.11</button>'+
+    ' ' +
+    '<button onclick="location.href=\'16.11.html\'">09.11</button>'
 );
 
 
