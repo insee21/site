@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>КУРАНТЫ НАД ВЯТКОЙ — Мистический триллер в Слободском</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #030406;
+    color: #e8e6e1;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    overflow: hidden;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+  #ui-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(16, 22, 32, 0.92) 0%, #020305 100%);
+    z-index: 10;
+    transition: opacity 1.5s ease;
+    text-align: center;
+    padding: 20px;
+  }
+  .subtitle-top {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.35rem;
+    color: #8a9ba8;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 3.1rem;
+    letter-spacing: 0.35rem;
+    color: #d4af37;
+    text-shadow: 0 0 25px rgba(212, 175, 55, 0.45);
+    margin-bottom: 14px;
+    font-weight: normal;
+  }
+  .cast-list {
+    font-family: 'Courier New', monospace;
+    color: #a0aab2;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 30px;
+    max-width: 640px;
+    border-top: 1px solid rgba(212, 175, 55, 0.25);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+    padding: 14px 0;
+  }
+  .cast-list span { color: #e2c26b; }
+  button {
+    background: rgba(212, 175, 55, 0.1);
+    color: #f3e5ab;
+    border: 1px solid #d4af37;
+    padding: 15px 42px;
+    font-size: 1.05rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.22rem;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+  }
+  button:hover {
+    background: #d4af37;
+    color: #05070a;
+    box-shadow: 0 0 35px rgba(212, 175, 55, 0.7);
+  }
+</style>
+</head>
+<body>
+
+<div id="ui-overlay">
+  <div class="subtitle-top">Кировская область // г. Слободской</div>
+  <h1>КУРАНТЫ НАД ВЯТКОЙ</h1>
+  <div class="cast-list">
+    <div><span>АРТЁМ ВОЛКОВ</span> — краевед-реставратор из Кирова</div>
+    <div><span>АЛИНА КРАСНОВА</span> — звукорежиссёр документального проекта</div>
+    <div><span>ИГНАТ ПЕТРОВИЧ</span> — старый смотритель Соборной колокольни (1823 г.)</div>
+  </div>
+  <button id="start-btn">СМОТРЕТЬ ФИЛЬМ (2:15)</button>
+</div>
+
+<canvas id="scene"></canvas>
+
+<script>
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('start-btn');
+const overlay = document.getElementById('ui-overlay');
+
+let width, height;
+function resize() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// --- ПРОЦЕДУРНЫЙ ЗВУКОВОЙ ДВИЖОК (ВЕЧЕРНЯЯ ВЯТКА, КУРАНТЫ, ГОЛОСОВЫЕ ТЕМБРЫ) ---
+class SlobodskoyAudio {
+  constructor() {
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.65;
+    this.master.connect(this.ctx.destination);
+    this.windGain = null;
+  }
+
+  startAtmosphere() {
+    // Ночной ветер над рекой Вяткой
+    const bufferSize = this.ctx.sampleRate * 4;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 280;
+    filter.Q.value = 3.2;
+
+    this.windGain = this.ctx.createGain();
+    this.windGain.gain.value = 0.08;
+
+    const lfo = this.ctx.createOscillator();
+    lfo.frequency.value = 0.14;
+    const lfoGain = this.ctx.createGain();
+    lfoGain.gain.value = 140;
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+
+    noise.connect(filter);
+    filter.connect(this.windGain);
+    this.windGain.connect(this.master);
+
+    noise.start();
+    lfo.start();
+  }
+
+  // Бой старинных курантов Слободской колокольни (1823 г.)
+  playBellChime(pitch = 196, duration = 4.5, vol = 0.25) {
+    const now = this.ctx.currentTime;
+    const partials = [1, 2.0, 2.41, 3.0, 4.2];
+    partials.forEach((ratio, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(pitch * ratio, now);
+
+      const pVol = vol / (idx + 1.2);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(pVol, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration / (1 + idx * 0.35));
+
+      osc.connect(gain);
+      gain.connect(this.master);
+      osc.start(now);
+      osc.stop(now + duration);
+    });
+  }
+
+  // Тональный голос персонажа при репликах (разная высота для Артёма, Алины и Игната)
+  playVoiceBlip(speaker) {
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    let baseFreq = 160;
+    if (speaker === 'АЛИНА') baseFreq = 265 + Math.random() * 35;
+    else if (speaker === 'АРТЁМ') baseFreq = 155 + Math.random() * 25;
+    else if (speaker === 'ИГНАТ') baseFreq = 105 + Math.random() * 18;
+    else baseFreq = 85;
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.88, now + 0.045);
+
+    gain.gain.setValueAtTime(0.035, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.055);
+  }
+
+  playTensionHit() {
+    const now = this.ctx.currentTime;
+    [55, 58.27, 82.41, 110].forEach(f => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(f, now);
+      osc.frequency.linearRampToValueAtTime(f * 0.94, now + 2.2);
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 320;
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 2.4);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.master);
+      osc.start(now);
+      osc.stop(now + 2.5);
+    });
+  }
+
+  playMechanismClick() {
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  }
+}
+
+let audio = null;
+
+// --- СЦЕНАРИЙ С ДИАЛОГАМИ И ПОВОРОТАМИ (135 СЕКУНД) ---
+const dialogueScript = [
+  // АКТ 1: Соборная площадь Слободского (0 - 34 сек)
+  { start: 1.5, end: 7.5, speaker: 'АЛИНА', color: '#7cc6fe', text: 'Так, микрофон пишет. Вятка внизу, туман стелется... Артём, глянь на эту громадину!' },
+  { start: 8.2, end: 15.0, speaker: 'АРТЁМ', color: '#f3d078', text: 'Соборная колокольня. Построена в 1823 году артелью Фёдора Тюрина. Шестьдесят шесть метров!' },
+  { start: 15.8, end: 22.5, speaker: 'АЛИНА', color: '#7cc6fe', text: 'Красиво... Только почему часы на верхнем ярусе идут назад? Посмотри на стрелки!' },
+  { start: 23.2, end: 29.5, speaker: 'АРТЁМ', color: '#f3d078', text: 'Бред какой-то... Механизм курантов старинный, я должен подняться наверх и проверить.' },
+  { start: 30.2, end: 34.0, speaker: 'АЛИНА', color: '#7cc6fe', text: 'Подожди меня! Дверь в арке приоткрыта, там кто-то светит фонарём...' },
+
+  // АКТ 2: Внутри купеческого особняка / подножия башни и встреча со смотрителем (34.5 - 74 сек)
+  { start: 35.5, end: 42.0, speaker: 'ИГНАТ', color: '#d98a6c', text: 'Куда на ночь глядя? Туристы днём ходят, а сейчас куранты свой счёт ведут.' },
+  { start: 42.8, end: 49.5, speaker: 'АРТЁМ', color: '#f3d078', text: 'Добрый вечер, отец. Мы из Кирова, реставраторы. У вас стрелки против хода крутятся!' },
+  { start: 50.2, end: 57.5, speaker: 'ИГНАТ', color: '#d98a6c', text: 'Это не поломка, сынок. Раз в сто лет слободские часы отматывают чужие долги назад.' },
+  { start: 58.2, end: 65.0, speaker: 'АЛИНА', color: '#7cc6fe', text: 'Артём, мне не по себе... На старом фото на стене — это же вы в купеческом сюртуке?!' },
+  { start: 65.8, end: 73.5, speaker: 'АРТЁМ', color: '#f3d078', text: 'Что за шутка?! Это портрет купца Анфилатова из 1810 года... Но лицо один в один моё!' },
+
+  // АКТ 3: Ярус часового механизма — Поворот №2 (74 - 110 сек)
+  { start: 75.0, end: 82.0, speaker: 'АЛИНА', color: '#7cc6fe', text: 'Шестерни огромные... Смотритель исчез! Дверь за нами захлопнулась сама!' },
+  { start: 82.8, end: 90.0, speaker: 'АРТЁМ', color: '#f3d078', text: 'В журнале смотрителя запись: «2026 год. Пришли двое с Вятки. Игнат умер в 1924-м».' },
+  { start: 90.8, end: 98.0, speaker: 'АЛИНА', color: '#7cc6fe', text: 'Артём, маятник остановился! На циферблате проступает какая-то надпись изнутри!' },
+  { start: 98.8, end: 108.5, speaker: 'ГОЛОС БАШНИ', color: '#ff5252', text: 'ВРЕМЯ СЛОБОДСКОГО ЗАМКНУЛОСЬ. ВЫ НЕ ПРИЕХАЛИ СЮДА — ВЫ ЗДЕСЬ ОСТАЛИСЬ.' },
+
+  // АКТ 4: Развязка на рассвете над Вяткой (110 - 135 сек)
+  { start: 111.5, end: 119.0, speaker: 'АЛИНА', color: '#7cc6fe', text: 'Артём... Посмотри в окно на площадь. Где наша машина? И почему внизу телеги и керосинки?' },
+  { start: 119.8, end: 127.5, speaker: 'АРТЁМ', color: '#f3d078', text: 'Куранты бьют полдень 1824 года... Мы больше не вернёмся в Киров, Алина.' }
+];
+
+// Частицы снега / тумана над Вяткой
+const snowFlakes = Array.from({ length: 140 }, () => ({
+  x: Math.random() * 2000 - 1000,
+  y: Math.random() * 1200 - 600,
+  r: Math.random() * 2.2 + 0.6,
+  vx: Math.random() * 0.6 + 0.2,
+  vy: Math.random() * 0.5 + 0.15
+}));
+
+// --- ОТРИСОВКА ПЕРСОНАЖЕЙ (ДЕТАЛИЗИРОВАННЫЕ СИЛУЭТЫ С АНИМАЦИЕЙ РЕЧИ) ---
+function drawCharacter(x, y, scale, type, isSpeaking, t, lookDir = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale * lookDir, scale);
+
+  const talkBob = isSpeaking ? Math.sin(t * 18) * 2.5 : Math.sin(t * 2) * 1;
+  const breathY = Math.cos(t * 2.5) * 1.5;
+
+  if (type === 'ARTEM') {
+    // Пальто и шарф
+    ctx.fillStyle = '#18222f';
+    ctx.beginPath();
+    ctx.moveTo(-26, 120);
+    ctx.lineTo(-20, 20 + breathY);
+    ctx.lineTo(20, 20 + breathY);
+    ctx.lineTo(28, 120);
+    ctx.closePath();
+    ctx.fill();
+
+    // Шарф
+    ctx.fillStyle = '#8b2635';
+    ctx.fillRect(-16, 16 + breathY, 32, 10);
+
+    // Голова
+    ctx.fillStyle = '#d8b49c';
+    ctx.beginPath();
+    ctx.arc(0, -2 + talkBob, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Волосы
+    ctx.fillStyle = '#241c18';
+    ctx.beginPath();
+    ctx.arc(-2, -6 + talkBob, 15.5, Math.PI * 0.9, Math.PI * 2.1);
+    ctx.fill();
+
+    // Глаз и мимика речи
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(7, -3 + talkBob, 2, 0, Math.PI * 2);
+    ctx.fill();
+    if (isSpeaking) {
+      ctx.fillStyle = '#4a1c1c';
+      ctx.beginPath();
+      ctx.ellipse(8, 6 + talkBob, 3.5, Math.abs(Math.sin(t * 16)) * 3 + 1, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (type === 'ALINA') {
+    // Тёплая куртка с капюшоном
+    ctx.fillStyle = '#243b4a';
+    ctx.beginPath();
+    ctx.moveTo(-22, 115);
+    ctx.lineTo(-17, 22 + breathY);
+    ctx.lineTo(17, 22 + breathY);
+    ctx.lineTo(23, 115);
+    ctx.closePath();
+    ctx.fill();
+
+    // Голова и шапка
+    ctx.fillStyle = '#e5c3ae';
+    ctx.beginPath();
+    ctx.arc(0, 2 + talkBob, 13.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#d4af37';
+    ctx.beginPath();
+    ctx.arc(0, -4 + talkBob, 14, Math.PI, Math.PI * 2);
+    ctx.fill();
+
+    // Микрофон-петличка / рекордер в руке
+    ctx.fillStyle = '#111';
+    ctx.fillRect(14, 42 + breathY, 8, 16);
+    ctx.fillStyle = '#ff3b30';
+    ctx.beginPath();
+    ctx.arc(18, 45 + breathY, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(6, 1 + talkBob, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    if (isSpeaking) {
+      ctx.fillStyle = '#6e2626';
+      ctx.beginPath();
+      ctx.ellipse(7, 8 + talkBob, 3, Math.abs(Math.sin(t * 17)) * 2.8 + 1, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (type === 'IGNAT') {
+    // Старый тулуп смотрителя и фонарь
+    ctx.fillStyle = '#2c241d';
+    ctx.beginPath();
+    ctx.moveTo(-30, 125);
+    ctx.lineTo(-22, 18 + breathY);
+    ctx.lineTo(22, 18 + breathY);
+    ctx.lineTo(30, 125);
+    ctx.closePath();
+    ctx.fill();
+
+    // Седая борода и голова
+    ctx.fillStyle = '#cbb39d';
+    ctx.beginPath();
+    ctx.arc(0, -2 + talkBob, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#d9dee2';
+    ctx.beginPath();
+    ctx.moveTo(-10, 4 + talkBob);
+    ctx.lineTo(12, 4 + talkBob);
+    ctx.lineTo(4, 28 + talkBob);
+    ctx.closePath();
+    ctx.fill();
+
+    // Старый керосиновый фонарь в руке
+    const lanternX = 28;
+    const lanternY = 65 + Math.sin(t * 3) * 3;
+    const glow = ctx.createRadialGradient(lanternX, lanternY, 2, lanternX, lanternY, 75);
+    glow.addColorStop(0, 'rgba(255, 190, 80, 0.75)');
+    glow.addColorStop(1, 'rgba(255, 140, 20, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lanternX, lanternY, 75, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffcf6e';
+    ctx.fillRect(lanternX - 5, lanternY - 8, 10, 16);
+  }
+
+  ctx.restore();
+}
+
+// --- ОТРИСОВКА УЗНАВАЕМОЙ АРХИТЕКТУРЫ СЛОБОДСКОГО ---
+function drawSlobodskoySquare(t, elapsed, camX, camY, isRetroFinale = false) {
+  // Небо: ночное в начале или золотисто-сепийное в финале 1824 года
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+  if (!isRetroFinale) {
+    skyGrad.addColorStop(0, '#060b14');
+    skyGrad.addColorStop(0.55, '#111e30');
+    skyGrad.addColorStop(1, '#1b2838');
+  } else {
+    skyGrad.addColorStop(0, '#2c2115');
+    skyGrad.addColorStop(0.55, '#6e4e2e');
+    skyGrad.addColorStop(1, '#c89d66');
+  }
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  // Река Вятка на заднем плане и туман
+  ctx.fillStyle = isRetroFinale ? '#5c4632' : '#0b1522';
+  ctx.fillRect(0, height * 0.68, width, height * 0.32);
+
+  // Плавный наезд на Соборную колокольню Преображенского собора (66 м, классицизм, желто-белая)
+  const zoom = 1 + Math.min(0.45, (isRetroFinale ? (elapsed - 110) : elapsed) * 0.012);
+  ctx.save();
+  ctx.translate(width * 0.52 + camX * 0.8, height * 0.68 + camY * 0.8);
+  ctx.scale(zoom, zoom);
+
+  // Гостиный двор / аркады купеческой площади слева и справа
+  ctx.fillStyle = isRetroFinale ? '#8c6b48' : '#242933';
+  ctx.fillRect(-460, -75, 340, 75);
+  ctx.fillRect(120, -75, 340, 75);
+
+  // Арочные проёмы торговых рядов
+  ctx.fillStyle = isRetroFinale ? '#3b2b1a' : '#0d1117';
+  for (let ax = -440; ax <= -160; ax += 45) {
+    ctx.beginPath();
+    ctx.arc(ax + 15, -35, 14, Math.PI, 0);
+    ctx.lineTo(ax + 29, 0);
+    ctx.lineTo(ax + 1, 0);
+    ctx.fill();
+  }
+  for (let ax = 140; ax <= 420; ax += 45) {
+    ctx.beginPath();
+    ctx.arc(ax + 15, -35, 14, Math.PI, 0);
+    ctx.lineTo(ax + 29, 0);
+    ctx.lineTo(ax + 1, 0);
+    ctx.fill();
+  }
+
+  // ЗНАМЕНИТАЯ КОЛОКОЛЬНЯ СЛОБОДСКОГО (1823 г.)
+  const wallColor = isRetroFinale ? '#d9a74a' : '#5c5338';
+  const trimColor = isRetroFinale ? '#f5ebd6' : '#9aa3ad';
+
+  // 1-й ярус (основание с портиком)
+  ctx.fillStyle = wallColor;
+  ctx.fillRect(-65, -130, 130, 130);
+  ctx.fillStyle = trimColor;
+  for (let c = -52; c <= 52; c += 26) ctx.fillRect(c - 4, -120, 8, 120);
+
+  // 2-й ярус
+  ctx.fillStyle = wallColor;
+  ctx.fillRect(-50, -230, 100, 100);
+  ctx.fillStyle = trimColor;
+  for (let c = -38; c <= 38; c += 25) ctx.fillRect(c - 3, -222, 6, 92);
+
+  // 3-й ярус (ярус звона)
+  ctx.fillStyle = wallColor;
+  ctx.fillRect(-36, -315, 72, 85);
+  ctx.fillStyle = '#090c10';
+  ctx.beginPath();
+  ctx.arc(0, -275, 18, Math.PI, 0);
+  ctx.lineTo(18, -240);
+  ctx.lineTo(-18, -240);
+  ctx.fill();
+
+  // 4-й ярус — КУРАНТЫ СЛОБОДСКОГО!
+  ctx.fillStyle = wallColor;
+  ctx.fillRect(-28, -375, 56, 60);
+
+  // Циферблат курантов
+  ctx.fillStyle = '#f2ead3';
+  ctx.beginPath();
+  ctx.arc(0, -345, 20, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Стрелки: в первом акте крутятся НАЗАД!
+  const clockAngle = isRetroFinale ? t * 0.2 : -t * 1.8;
+  ctx.beginPath();
+  ctx.moveTo(0, -345);
+  ctx.lineTo(Math.cos(clockAngle) * 14, -345 + Math.sin(clockAngle) * 14);
+  ctx.moveTo(0, -345);
+  ctx.lineTo(Math.cos(clockAngle * 0.2) * 10, -345 + Math.sin(clockAngle * 0.2) * 10);
+  ctx.stroke();
+
+  // Золотой купол и высокий шпиль
+  ctx.fillStyle = isRetroFinale ? '#f2c14e' : '#8a7332';
+  ctx.beginPath();
+  ctx.arc(0, -375, 26, Math.PI, 0);
+  ctx.fill();
+
+  ctx.strokeStyle = isRetroFinale ? '#ffe28a' : '#b89f54';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, -400);
+  ctx.lineTo(0, -465);
+  ctx.moveTo(-7, -450);
+  ctx.lineTo(7, -450);
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Площадь и герои на переднем плане
+  ctx.fillStyle = isRetroFinale ? '#4a3b2c' : '#121721';
+  ctx.fillRect(0, height * 0.68, width, height * 0.32);
+
+  const activeLine = dialogueScript.find(d => elapsed >= d.start && elapsed <= d.end);
+  const speaker = activeLine ? activeLine.speaker : '';
+
+  drawCharacter(width * 0.28 + camX * 1.5, height * 0.72 + camY, 1.35, 'ARTEM', speaker === 'АРТЁМ', t, 1);
+  drawCharacter(width * 0.20 + camX * 1.5, height * 0.73 + camY, 1.28, 'ALINA', speaker === 'АЛИНА', t, 1);
+}
+
+// --- АКТ 2: ВНУТРИ БАШНИ И СТАРИННЫЙ ПОРТРЕТ КУПЦА (34.5 - 74 сек) ---
+function drawTowerInteriorAct(t, elapsed, camX, camY) {
+  ctx.fillStyle = '#0d0b0a';
+  ctx.fillRect(0, 0, width, height);
+
+  // Кирпичная кладка XIX века в свете фонаря
+  const lightX = width * 0.55 + camX * 2;
+  const lightY = height * 0.5 + camY * 2;
+  const wallLight = ctx.createRadialGradient(lightX, lightY, 30, lightX, lightY, width * 0.6);
+  wallLight.addColorStop(0, '#3a291a');
+  wallLight.addColorStop(0.6, '#1a120c');
+  wallLight.addColorStop(1, '#050403');
+  ctx.fillStyle = wallLight;
+  ctx.fillRect(0, 0, width, height);
+
+  // Старинный купеческий портрет на стене (поворот сюжета!)
+  const portraitZoom = elapsed > 57 ? 1 + (elapsed - 57) * 0.035 : 1;
+  ctx.save();
+  ctx.translate(width * 0.68 + camX, height * 0.38 + camY);
+  ctx.scale(portraitZoom, portraitZoom);
+
+  // Золочёная рама
+  ctx.fillStyle = '#5e4619';
+  ctx.fillRect(-75, -95, 150, 190);
+  ctx.fillStyle = '#1c1815';
+  ctx.fillRect(-62, -82, 124, 164);
+
+  // Купец Анфилатов (1810 г.) с лицом Артёма
+  ctx.fillStyle = '#0e131a';
+  ctx.beginPath();
+  ctx.ellipse(0, 55, 45, 50, 0, Math.PI, 0);
+  ctx.fill();
+  ctx.fillStyle = '#f0ead6';
+  ctx.fillRect(-10, 10, 20, 25); // жабо
+  ctx.fillStyle = '#cfa98e';
+  ctx.beginPath();
+  ctx.arc(0, -18, 22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#241c18';
+  ctx.beginPath();
+  ctx.arc(0, -23, 23, Math.PI * 0.9, Math.PI * 2.1);
+  ctx.fill();
+
+  ctx.fillStyle = '#d4af37';
+  ctx.font = '10px Georgia';
+  ctx.textAlign = 'center';
+  ctx.fillText('К. А. Анфилатов, 1810 г.', 0, 74);
+  ctx.restore();
+
+  const activeLine = dialogueScript.find(d => elapsed >= d.start && elapsed <= d.end);
+  const speaker = activeLine ? activeLine.speaker : '';
+
+  drawCharacter(width * 0.25 + camX * 1.4, height * 0.72 + camY, 1.45, 'ARTEM', speaker === 'АРТЁМ', t, 1);
+  drawCharacter(width * 0.16 + camX * 1.4, height * 0.73 + camY, 1.38, 'ALINA', speaker === 'АЛИНА', t, 1);
+
+  // Смотритель Игнат стоит справа (исчезает к 74-й секунде)
+  if (elapsed < 73.5) {
+    ctx.save();
+    ctx.globalAlpha = elapsed > 70 ? Math.max(0, (73.5 - elapsed) / 3.5) : 1;
+    drawCharacter(width * 0.54 + camX * 1.4, height * 0.72 + camY, 1.45, 'IGNAT', speaker === 'ИГНАТ', t, -1);
+    ctx.restore();
+  }
+}
+
+// --- АКТ 3: МЕХАНИЗМ КУРАНТОВ (74 - 110 сек) ---
+function drawClockworkAct(t, elapsed, camX, camY) {
+  ctx.fillStyle = '#08090c';
+  ctx.fillRect(0, 0, width, height);
+
+  const zoom = 1 + (elapsed - 74) * 0.015;
+  ctx.save();
+  ctx.translate(width * 0.5 + camX, height * 0.45 + camY);
+  ctx.scale(zoom, zoom);
+
+  // Огромные латунные шестерни курантов, вращающиеся в обратную сторону
+  const gears = [
+    { x: -140, y: -40, r: 110, teeth: 24, speed: -0.45 },
+    { x: 65, y: -70, r: 85, teeth: 18, speed: 0.58 },
+    { x: 15, y: 95, r: 95, teeth: 20, speed: -0.52 }
+  ];
+
+  const isStopped = elapsed > 90.5;
+  gears.forEach(g => {
+    ctx.save();
+    ctx.translate(g.x, g.y);
+    ctx.rotate(isStopped ? 0.3 : t * g.speed);
+    ctx.strokeStyle = isStopped ? '#9e3a3a' : '#b89446';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(0, 0, g.r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Спицы
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a) * g.r, Math.sin(a) * g.r);
+      ctx.stroke();
+    }
+    // Зубья
+    for (let i = 0; i < g.teeth; i++) {
+      const a = (i / g.teeth) * Math.PI * 2;
+      ctx.fillStyle = isStopped ? '#9e3a3a' : '#d4af37';
+      ctx.save();
+      ctx.rotate(a);
+      ctx.fillRect(g.r - 2, -4, 12, 8);
+      ctx.restore();
+    }
+    ctx.restore();
+  });
+
+  // Светящийся изнутри циферблат в центре с датой «1824»
+  if (elapsed > 91) {
+    const glowAlpha = Math.min(1, (elapsed - 91) / 4);
+    ctx.fillStyle = `rgba(255, 65, 54, ${glowAlpha * 0.25})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, 170, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = `rgba(255, 220, 180, ${glowAlpha})`;
+    ctx.font = 'bold 48px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText('1824', 0, 15);
+  }
+  ctx.restore();
+
+  const activeLine = dialogueScript.find(d => elapsed >= d.start && elapsed <= d.end);
+  const speaker = activeLine ? activeLine.speaker : '';
+  drawCharacter(width * 0.26 + camX * 1.5, height * 0.74 + camY, 1.35, 'ARTEM', speaker === 'АРТЁМ', t, 1);
+  drawCharacter(width * 0.74 + camX * 1.5, height * 0.74 + camY, 1.32, 'ALINA', speaker === 'АЛИНА', t, -1);
+}
+
+// --- СУБТИТРЫ НАПРЯМУЮ В CANVAS ---
+let lastTypeCharCount = 0;
+function drawCanvasSubtitles(elapsed) {
+  const line = dialogueScript.find(d => elapsed >= d.start && elapsed <= d.end);
+  if (!line) {
+    lastTypeCharCount = 0;
+    return;
+  }
+
+  const lineElapsed = elapsed - line.start;
+  const totalDuration = line.end - line.start;
+  const typeDuration = Math.min(2.2, totalDuration * 0.55);
+  const progress = Math.min(1, lineElapsed / typeDuration);
+  const visibleChars = Math.floor(line.text.length * progress);
+
+  if (visibleChars > lastTypeCharCount && visibleChars % 3 === 0) {
+    audio.playVoiceBlip(line.speaker);
+  }
+  lastTypeCharCount = visibleChars;
+
+  const shownText = line.text.substring(0, visibleChars);
+
+  // Плавное появление и затухание плашки
+  let alpha = 1;
+  if (lineElapsed < 0.3) alpha = lineElapsed / 0.3;
+  if (line.end - elapsed < 0.4) alpha = Math.max(0, (line.end - elapsed) / 0.4);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  const boxWidth = Math.min(width * 0.86, 920);
+  const boxHeight = 86;
+  const boxX = (width - boxWidth) / 2;
+  const boxY = height - boxHeight - 36;
+
+  // Подложка субтитров
+  ctx.fillStyle = 'rgba(6, 9, 14, 0.82)';
+  ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+  // Цветная полоска говорящего персонажа слева
+  ctx.fillStyle = line.color;
+  ctx.fillRect(boxX, boxY, 5, boxHeight);
+
+  // Имя персонажа
+  ctx.fillStyle = line.color;
+  ctx.font = 'bold 15px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText(line.speaker, boxX + 22, boxY + 28);
+
+  // Текст реплики (с автоматическим переносом строк)
+  ctx.fillStyle = '#f4f1ea';
+  ctx.font = '20px Georgia';
+  wrapText(ctx, shownText, boxX + 22, boxY + 56, boxWidth - 44, 24);
+
+  ctx.restore();
+}
+
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  let line = '';
+  let curY = y;
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + ' ';
+    const metrics = context.measureText(testLine);
+    if (metrics.width > maxWidth && n > 0) {
+      context.fillText(line, x, curY);
+      line = words[n] + ' ';
+      curY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  context.fillText(line, x, curY);
+}
+
+// --- ПОСТ-ОБРАБОТКА И КИНО-ИНТЕРФЕЙС ---
+function drawCinematicOverlay(t, elapsed, isRetro) {
+  // Снежинки / пыль
+  ctx.fillStyle = isRetro ? 'rgba(255, 230, 180, 0.25)' : 'rgba(210, 225, 245, 0.3)';
+  snowFlakes.forEach(s => {
+    s.x += s.vx;
+    s.y += s.vy;
+    if (s.x > width / 2) s.x = -width / 2;
+    if (s.y > height / 2) s.y = -height / 2;
+    ctx.beginPath();
+    ctx.arc(width / 2 + s.x, height / 2 + s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Виньетка
+  const vig = ctx.createRadialGradient(width / 2, height / 2, height * 0.32, width / 2, height / 2, width * 0.78);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.78)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, width, height);
+
+  // Кинематографичные полосы (Letterbox)
+  const barH = 26;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, width, barH);
+  ctx.fillRect(0, height - barH, width, barH);
+
+  // Геотег в углу кадра
+  ctx.fillStyle = 'rgba(230, 220, 200, 0.75)';
+  ctx.font = '13px Courier New';
+  ctx.textAlign = 'left';
+  const locText = isRetro
+    ? '● г. СЛОБОДСКОЙ // СОБОРНАЯ ПЛОЩАДЬ // 1824 ГОД'
+    : '● г. СЛОБОДСКОЙ // СОБОРНАЯ ПЛОЩАДЬ // 23:58';
+  ctx.fillText(locText, 28, 52);
+}
+
+// --- ГЛАВНЫЙ ЦИКЛ ФИЛЬМА ---
+let isPlaying = false;
+let startTime = 0;
+let lastClickTime = 0;
+let bellPlayed1 = false;
+let bellPlayed2 = false;
+let tensionPlayed = false;
+
+function loop(timestamp) {
+  if (!isPlaying) return;
+  const elapsed = (timestamp - startTime) / 1000;
+  const t = elapsed;
+
+  // Плавное кинематографичное движение камеры (панорамирование + дыхание)
+  const camX = Math.sin(t * 0.65) * 24 + Math.cos(t * 1.4) * 6;
+  const camY = Math.cos(t * 0.55) * 14 + Math.sin(t * 1.7) * 4;
+
+  // Звуковые события по сюжету
+  if (elapsed > 2.0 && !bellPlayed1) {
+    bellPlayed1 = true;
+    audio.playBellChime(196, 5.0, 0.25);
+  }
+  if (elapsed > 74.5 && elapsed < 90.5 && elapsed - lastClickTime > 1.0) {
+    audio.playMechanismClick();
+    lastClickTime = elapsed;
+  }
+  if (elapsed > 98.5 && !tensionPlayed) {
+    tensionPlayed = true;
+    audio.playTensionHit();
+  }
+  if (elapsed > 119.5 && !bellPlayed2) {
+    bellPlayed2 = true;
+    audio.playBellChime(146.83, 6.5, 0.35);
+  }
+
+  // Переключение сцен
+  if (elapsed < 34.5) {
+    drawSlobodskoySquare(t, elapsed, camX, camY, false);
+    drawCinematicOverlay(t, elapsed, false);
+  } else if (elapsed < 74.0) {
+    drawTowerInteriorAct(t, elapsed, camX, camY);
+    drawCinematicOverlay(t, elapsed, false);
+  } else if (elapsed < 110.0) {
+    drawClockworkAct(t, elapsed, camX, camY);
+    drawCinematicOverlay(t, elapsed, false);
+  } else if (elapsed < 131.0) {
+    drawSlobodskoySquare(t, elapsed, camX, camY, true);
+    drawCinematicOverlay(t, elapsed, true);
+  } else {
+    // Финальные титры
+    ctx.fillStyle = '#030406';
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#d4af37';
+    ctx.font = '28px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText('КУРАНТЫ НАД ВЯТКОЙ', width / 2, height / 2 - 20);
+    ctx.fillStyle = '#9aa3ad';
+    ctx.font = '15px Courier New';
+    ctx.fillText('г. Слободской, Кировская область — Конец первой серии', width / 2, height / 2 + 20);
+    return;
+  }
+
+  drawCanvasSubtitles(elapsed);
+  requestAnimationFrame(loop);
+}
+
+startBtn.addEventListener('click', () => {
+  overlay.style.opacity = 0;
+  setTimeout(() => overlay.style.display = 'none', 1500);
+
+  audio = new SlobodskoyAudio();
+  audio.startAtmosphere();
+
+  isPlaying = true;
+  startTime = performance.now();
+  requestAnimationFrame(loop);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>СИГНАЛ 04:17 — Интерактивный HTML Хоррор</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    color: #e0e0e0;
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+  #ui-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(15,15,20,0.9) 0%, #000 100%);
+    z-index: 10;
+    transition: opacity 1.2s ease;
+  }
+  h1 {
+    font-size: 3.2rem;
+    letter-spacing: 0.5rem;
+    color: #cc0000;
+    text-shadow: 0 0 25px rgba(255, 0, 0, 0.7);
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  p.desc {
+    color: #999;
+    margin-bottom: 2.5rem;
+    font-size: 1rem;
+    letter-spacing: 0.12rem;
+    text-align: center;
+  }
+  button {
+    background: rgba(179, 0, 0, 0.15);
+    color: #fff;
+    border: 1px solid #cc0000;
+    padding: 16px 44px;
+    font-size: 1.15rem;
+    font-family: inherit;
+    letter-spacing: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(204, 0, 0, 0.4);
+  }
+  button:hover {
+    background: #cc0000;
+    box-shadow: 0 0 35px rgba(255, 0, 0, 0.9);
+  }
+  #rec-indicator {
+    position: fixed;
+    top: 25px;
+    left: 30px;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 1s;
+  }
+  .dot {
+    width: 11px;
+    height: 11px;
+    background: #ff0000;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #ff0000;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div id="ui-overlay">
+  <h1>СИГНАЛ 04:17</h1>
+  <p class="desc">[ ВКЛЮЧИТЕ ЗВУК / НАДЕНЬТЕ НАУШНИКИ ]</p>
+  <button id="start-btn">ЗАПУСТИТЬ ФИЛЬМ</button>
+</div>
+
+<div id="rec-indicator"><div class="dot"></div><span>CAM_04 // REC <span id="timer">04:17:00</span></span></div>
+<canvas id="scene"></canvas>
+
+<script>
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('start-btn');
+const overlay = document.getElementById('ui-overlay');
+const recEl = document.getElementById('rec-indicator');
+const timerEl = document.getElementById('timer');
+
+let width, height;
+function resize() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// --- УСИЛЕННЫЙ ПРОЦЕДУРНЫЙ ЗВУКОВОЙ ДВИЖОК (WEB AUDIO API) ---
+class HorrorAudio {
+  constructor() {
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.75;
+    this.master.connect(this.ctx.destination);
+    this.windGain = null;
+  }
+
+  startAtmosphere() {
+    const now = this.ctx.currentTime;
+
+    // 1. Глубокий тревожный гул (саб-бас)
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const droneGain = this.ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc2.type = 'triangle';
+    osc1.frequency.value = 41.2; // E1
+    osc2.frequency.value = 43.0; // биения
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 130;
+
+    droneGain.gain.setValueAtTime(0.01, now);
+    droneGain.gain.exponentialRampToValueAtTime(0.45, now + 3.5);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(droneGain);
+    droneGain.connect(this.master);
+
+    osc1.start();
+    osc2.start();
+
+    // 2. Завывающий ночной ветер (фильтрованный розовый/белый шум)
+    const bufferSize = this.ctx.sampleRate * 4;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const windNoise = this.ctx.createBufferSource();
+    windNoise.buffer = buffer;
+    windNoise.loop = true;
+
+    const windFilter = this.ctx.createBiquadFilter();
+    windFilter.type = 'bandpass';
+    windFilter.frequency.value = 320;
+    windFilter.Q.value = 4.5;
+
+    // Модуляция ветра
+    const lfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
+    lfo.frequency.value = 0.18;
+    lfoGain.gain.value = 180;
+    lfo.connect(lfoGain);
+    lfoGain.connect(windFilter.frequency);
+    lfo.start();
+
+    this.windGain = this.ctx.createGain();
+    this.windGain.gain.setValueAtTime(0.08, now);
+
+    windNoise.connect(windFilter);
+    windFilter.connect(this.windGain);
+    this.windGain.connect(this.master);
+    windNoise.start();
+  }
+
+  playFootstep() {
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(95, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
+
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  }
+
+  playRadarBeep(freq = 880) {
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.13);
+  }
+
+  playTypeTick() {
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1400 + Math.random() * 400, now);
+
+    gain.gain.setValueAtTime(0.03, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.03);
+  }
+
+  playHeartbeat() {
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(72, now);
+    osc.frequency.exponentialRampToValueAtTime(24, now + 0.16);
+
+    gain.gain.setValueAtTime(0.65, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.26);
+  }
+
+  playStaticBurst(duration = 0.45, vol = 0.35) {
+    const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1100;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.master);
+    noise.start();
+  }
+
+  playScareChord() {
+    const now = this.ctx.currentTime;
+    const freqs = [98, 103.8, 138.6, 196, 415.3, 830.6];
+    freqs.forEach(f => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(f, now);
+      osc.frequency.linearRampToValueAtTime(f * 0.88, now + 2.8);
+
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+
+      osc.connect(gain);
+      gain.connect(this.master);
+      osc.start(now);
+      osc.stop(now + 3.1);
+    });
+  }
+}
+
+let audio = null;
+
+// --- ОБЪЕКТЫ СЦЕНЫ И ЧАСТИЦЫ ---
+const particles = Array.from({ length: 130 }, () => ({
+  x: Math.random() * 2000 - 1000,
+  y: Math.random() * 1200 - 600,
+  z: Math.random() * 1000 + 100,
+  size: Math.random() * 2.5 + 0.6,
+  speedY: Math.random() * 0.45 + 0.15
+}));
+
+const trees = Array.from({ length: 48 }, (_, i) => ({
+  x: (Math.random() - 0.5) * 2800,
+  z: (i / 48) * 1800 + 140,
+  width: Math.random() * 42 + 24,
+  lean: (Math.random() - 0.5) * 0.12
+}));
+
+// --- УПРАВЛЕНИЕ СЮЖЕТОМ И КАМЕРОЙ ---
+let isPlaying = false;
+let startTime = 0;
+let lastBeat = 0;
+let lastStep = 0;
+let lastBeep = 0;
+let lastCharCount = 0;
+let glitchAmount = 0;
+let scareTriggered = false;
+let twist2Triggered = false;
+
+const script = [
+  { start: 1.2, end: 6.5, text: "04:17. Связь с периметром потеряна три часа назад..." },
+  { start: 7.2, end: 12.6, text: "Из старой вышки в лесу доносится странный ритмичный сигнал." },
+  { start: 13.8, end: 19.2, text: "Я вошел внутрь. Здесь никого нет, но аппаратура раскалена." },
+  { start: 20.0, end: 24.8, text: "Подождите... Эта частота на осциллографе..." },
+  { start: 25.4, end: 31.0, text: "ЭТО НЕ РАДИОВОЛНА. ЭТО МОЙ СОБСТВЕННЫЙ ПУЛЬС." },
+  { start: 32.4, end: 37.8, text: "Если сигнал идет от меня... кто тогда стоит за моей спиной?" },
+  { start: 38.6, end: 44.8, text: "ОНО НЕ ДВИГАЕТСЯ, ПОКА Я СМОТРЮ В ЗЕРКАЛО..." },
+  { start: 45.6, end: 49.4, text: "СИГНАЛ ЗАВЕРШЕН. НОСИТЕЛЬ ОБНАРУЖЕН." }
+];
+
+// --- ВСТРОЕННЫЕ В CANVAS КИНЕМАТОГРАФИЧНЫЕ СУБТИТРЫ ---
+function drawCanvasSubtitles(elapsed) {
+  const line = script.find(s => elapsed >= s.start && elapsed <= s.end);
+  if (!line) {
+    lastCharCount = 0;
+    return;
+  }
+
+  // Эффект плавного появления текста (печатная машинка)
+  const durationSinceStart = elapsed - line.start;
+  const charsToShow = Math.min(line.text.length, Math.floor(durationSinceStart * 32));
+  const visibleText = line.text.substring(0, charsToShow);
+
+  // Звуковой клик при появлении новых букв
+  if (charsToShow > lastCharCount && charsToShow % 2 === 0 && audio) {
+    audio.playTypeTick();
+  }
+  lastCharCount = charsToShow;
+
+  // Плавное затухание в конце фразы
+  const timeLeft = line.end - elapsed;
+  const alpha = timeLeft < 0.5 ? Math.max(0, timeLeft / 0.5) : 1;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  const fontSize = Math.max(16, Math.min(24, Math.floor(width * 0.017)));
+  ctx.font = `bold ${fontSize}px "Courier New", Courier, monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const metrics = ctx.measureText(line.text);
+  const boxW = Math.min(width * 0.9, metrics.width + 48);
+  const boxH = fontSize * 2.2;
+  const boxX = width / 2 - boxW / 2;
+  const boxY = height * 0.88 - boxH / 2;
+
+  // Темная полупрозрачная подложка
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+  ctx.fillRect(boxX, boxY, boxW, boxH);
+
+  // Красная кинематографичная полоса слева
+  ctx.fillStyle = elapsed > 25 ? '#ff1a1a' : '#b30000';
+  ctx.fillRect(boxX, boxY, 4, boxH);
+
+  // Текст субтитров с тенью
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = elapsed > 45.5 ? '#ff4d4d' : '#f2f2f2';
+  ctx.fillText(visibleText, width / 2, height * 0.88);
+
+  ctx.restore();
+}
+
+// --- ОТРИСОВКА АКТОВ ---
+
+// АКТ 1: Ночной лес и вышка (0 - 13 сек)
+function drawForestAct(t, camX, camY, camZ) {
+  const grad = ctx.createLinearGradient(0, 0, 0, height);
+  grad.addColorStop(0, '#030508');
+  grad.addColorStop(0.6, '#0b131e');
+  grad.addColorStop(1, '#020305');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, width, height);
+
+  const moonX = width * 0.5 + camX * 0.2;
+  const moonY = height * 0.28 + camY * 0.2;
+  const moonGlow = ctx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 220);
+  moonGlow.addColorStop(0, 'rgba(200, 220, 255, 0.35)');
+  moonGlow.addColorStop(1, 'rgba(10, 20, 35, 0)');
+  ctx.fillStyle = moonGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  const towerScale = 800 / Math.max(120, 1400 - camZ);
+  const tx = width / 2 + camX * towerScale;
+  const ty = height * 0.55 + camY * towerScale;
+
+  ctx.save();
+  ctx.translate(tx, ty);
+  ctx.scale(towerScale, towerScale);
+  ctx.strokeStyle = '#090d14';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-45, 200);
+  ctx.lineTo(0, -280);
+  ctx.lineTo(45, 200);
+  for (let y = -200; y < 180; y += 55) {
+    const w = ((y + 280) / 480) * 45;
+    ctx.moveTo(-w, y);
+    ctx.lineTo(w, y);
+  }
+  ctx.stroke();
+
+  const pulse = (Math.sin(t * 5) + 1) * 0.5;
+  ctx.fillStyle = `rgba(255, 20, 20, ${0.3 + pulse * 0.7})`;
+  ctx.beginPath();
+  ctx.arc(0, -285, 6 + pulse * 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  const beaconGlow = ctx.createRadialGradient(0, -285, 2, 0, -285, 90);
+  beaconGlow.addColorStop(0, `rgba(255, 0, 0, ${pulse * 0.6})`);
+  beaconGlow.addColorStop(1, 'rgba(255, 0, 0, 0)');
+  ctx.fillStyle = beaconGlow;
+  ctx.fillRect(-100, -385, 200, 200);
+  ctx.restore();
+
+  trees.sort((a, b) => b.z - a.z).forEach(tree => {
+    let relZ = tree.z - (camZ % 1800);
+    if (relZ < 50) relZ += 1800;
+    const scale = 600 / relZ;
+    const sx = width / 2 + (tree.x + camX * 2.5) * scale;
+    const alpha = Math.min(1, (1800 - relZ) / 900);
+
+    ctx.save();
+    ctx.translate(sx, height);
+    ctx.rotate(tree.lean + Math.sin(t * 0.8 + tree.z) * 0.015);
+    ctx.fillStyle = `rgba(4, 6, 10, ${alpha})`;
+    const w = tree.width * scale;
+    ctx.fillRect(-w / 2, -height * 1.4, w, height * 1.5);
+    ctx.restore();
+  });
+}
+
+// АКТ 2: Осциллограф и пульс (13 - 31.5 сек)
+function drawOscilloscopeAct(t, elapsed, camX, camY) {
+  ctx.fillStyle = '#070908';
+  ctx.fillRect(0, 0, width, height);
+
+  const lightX = width * 0.5 + camX * 1.5;
+  const lightY = height * 0.5 + camY * 1.5;
+  const roomLight = ctx.createRadialGradient(lightX, lightY, 40, lightX, lightY, width * 0.65);
+  roomLight.addColorStop(0, '#16241b');
+  roomLight.addColorStop(1, '#020302');
+  ctx.fillStyle = roomLight;
+  ctx.fillRect(0, 0, width, height);
+
+  const zoom = 1 + (elapsed - 13) * 0.035;
+  ctx.save();
+  ctx.translate(width / 2 + camX, height / 2 + camY);
+  ctx.scale(zoom, zoom);
+
+  ctx.fillStyle = '#111614';
+  ctx.strokeStyle = '#26332d';
+  ctx.lineWidth = 6;
+  ctx.fillRect(-260, -160, 520, 320);
+  ctx.strokeRect(-260, -160, 520, 320);
+
+  ctx.fillStyle = '#04120a';
+  ctx.fillRect(-220, -120, 320, 240);
+
+  ctx.strokeStyle = 'rgba(0, 255, 100, 0.12)';
+  ctx.lineWidth = 1;
+  for (let x = -220; x <= 100; x += 20) {
+    ctx.beginPath(); ctx.moveTo(x, -120); ctx.lineTo(x, 120); ctx.stroke();
+  }
+  for (let y = -120; y <= 120; y += 20) {
+    ctx.beginPath(); ctx.moveTo(-220, y); ctx.lineTo(100, y); ctx.stroke();
+  }
+
+  const isHeartbeatMode = elapsed > 25.0;
+  ctx.strokeStyle = isHeartbeatMode ? '#ff2a2a' : '#2aff7a';
+  ctx.shadowColor = isHeartbeatMode ? '#ff0000' : '#00ff66';
+  ctx.shadowBlur = 12;
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+  for (let i = 0; i <= 320; i += 3) {
+    const px = -220 + i;
+    let py = 0;
+    if (!isHeartbeatMode) {
+      py = Math.sin(i * 0.06 + t * 14) * 25 + (Math.random() - 0.5) * 18;
+    } else {
+      const phase = ((i * 0.03 + t * 2.2) % 1);
+      if (phase > 0.45 && phase < 0.48) py = -15;
+      else if (phase >= 0.48 && phase < 0.51) py = 20;
+      else if (phase >= 0.51 && phase < 0.54) py = -75;
+      else if (phase >= 0.54 && phase < 0.57) py = 30;
+      else if (phase >= 0.65 && phase < 0.72) py = -12;
+      else py = (Math.random() - 0.5) * 4;
+    }
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = isHeartbeatMode ? '#ff0000' : '#00ff66';
+  ctx.beginPath();
+  ctx.arc(175, -60, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#778880';
+  ctx.font = '14px Courier New';
+  ctx.fillText(isHeartbeatMode ? 'BPM: 148 [ERR]' : 'FREQ: 417 Hz', 125, 10);
+  ctx.fillText('SRC: INTERNAL', 125, 40);
+
+  ctx.restore();
+}
+
+// АКТ 3: Зеркало и тень за спиной (31.5 - 45.5 сек)
+function drawMirrorAct(t, elapsed, camX, camY) {
+  ctx.fillStyle = '#050507';
+  ctx.fillRect(0, 0, width, height);
+
+  const zoom = 1 + (elapsed - 31.5) * 0.025;
+  ctx.save();
+  ctx.translate(width / 2 + camX * 1.4, height / 2 + camY * 1.4);
+  ctx.scale(zoom, zoom);
+
+  ctx.fillStyle = '#0e1116';
+  ctx.strokeStyle = '#252932';
+  ctx.lineWidth = 14;
+  ctx.fillRect(-200, -260, 400, 520);
+  ctx.strokeRect(-200, -260, 400, 520);
+
+  const mirrorGrad = ctx.createRadialGradient(0, 0, 20, 0, 0, 280);
+  mirrorGrad.addColorStop(0, '#1a202c');
+  mirrorGrad.addColorStop(1, '#040508');
+  ctx.fillStyle = mirrorGrad;
+  ctx.fillRect(-193, -253, 386, 506);
+
+  // Силуэт главного героя
+  ctx.fillStyle = '#090b0f';
+  ctx.beginPath();
+  ctx.arc(-60, 60, 55, 0, Math.PI * 2);
+  ctx.ellipse(-60, 230, 110, 130, 0, Math.PI, 0);
+  ctx.fill();
+
+  // Сущность за спиной в отражении
+  const entityProgress = Math.min(1, (elapsed - 32.5) / 8);
+  const entityX = 75 - entityProgress * 35;
+  const entityY = -30 + Math.sin(t * 2) * 4;
+
+  ctx.save();
+  ctx.globalAlpha = Math.min(0.95, entityProgress * 1.2);
+  ctx.fillStyle = '#020203';
+  ctx.beginPath();
+  ctx.ellipse(entityX, entityY, 36, 58, 0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(entityX - 18, entityY + 40, 36, 220);
+
+  if (elapsed > 34.5) {
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(entityX - 12, entityY - 5, 3.5, 0, Math.PI * 2);
+    ctx.arc(entityX + 10, entityY - 2, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  ctx.restore();
+
+  // Трещины на стекле
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(120, -180);
+  ctx.lineTo(40, -60);
+  ctx.lineTo(80, 40);
+  ctx.moveTo(40, -60);
+  ctx.lineTo(-90, 20);
+  ctx.moveTo(40, -60);
+  ctx.lineTo(150, 90);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// АКТ 4: Финальный скример / Сбой (45.5 - 49.5 сек)
+function drawFinaleAct(t) {
+  const flash = Math.sin(t * 45) > 0;
+  ctx.fillStyle = flash ? '#2b0000' : '#000000';
+  ctx.fillRect(0, 0, width, height);
+
+  const shakeX = (Math.random() - 0.5) * 45;
+  const shakeY = (Math.random() - 0.5) * 45;
+
+  ctx.save();
+  ctx.translate(width / 2 + shakeX, height / 2 + shakeY);
+
+  ctx.fillStyle = '#050000';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 190, 270, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffdddd';
+  ctx.shadowColor = '#ff0000';
+  ctx.shadowBlur = 30;
+  ctx.beginPath();
+  ctx.arc(-65, -45, 16, 0, Math.PI * 2);
+  ctx.arc(65, -45, 16, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(-65, -45, 5, 0, Math.PI * 2);
+  ctx.arc(65, -45, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#1a0000';
+  ctx.beginPath();
+  ctx.ellipse(0, 85, 55, 95, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// --- ПОСТ-ОБРАБОТКА ---
+function drawPostProcessing(t) {
+  ctx.fillStyle = 'rgba(220, 225, 235, 0.25)';
+  particles.forEach(p => {
+    p.y -= p.speedY;
+    p.x += Math.sin(t + p.z) * 0.3;
+    if (p.y < -height / 2) p.y = height / 2;
+    const sx = width / 2 + p.x;
+    const sy = height / 2 + p.y;
+    ctx.beginPath();
+    ctx.arc(sx, sy, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  if (glitchAmount > 0.01) {
+    for (let i = 0; i < 8; i++) {
+      const sliceY = Math.random() * height;
+      const sliceH = Math.random() * 35 + 5;
+      const offset = (Math.random() - 0.5) * 90 * glitchAmount;
+      ctx.drawImage(canvas, 0, sliceY, width, sliceH, offset, sliceY, width, sliceH);
+    }
+    glitchAmount *= 0.92;
+  }
+
+  const vig = ctx.createRadialGradient(width / 2, height / 2, height * 0.3, width / 2, height / 2, width * 0.75);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.88)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, width, height);
+
+  const barHeight = height * 0.08;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, width, barHeight);
+  ctx.fillRect(0, height - barHeight, width, barHeight);
+}
+
+// --- ГЛАВНЫЙ ЦИКЛ РЕНДЕРА ---
+function loop(timestamp) {
+  if (!isPlaying) return;
+  const elapsed = (timestamp - startTime) / 1000;
+  const t = elapsed;
+
+  const secs = Math.floor(elapsed).toString().padStart(2, '0');
+  timerEl.textContent = `04:17:${secs}`;
+
+  const breath = elapsed > 25 ? 2.5 : 1.0;
+  const camX = Math.sin(t * 1.1) * 18 + Math.cos(t * 2.3) * 6;
+  const camY = Math.cos(t * 0.9) * 12 + Math.sin(t * 3.1 * breath) * 5;
+  const camZ = elapsed * 95;
+
+  // Звуковые события по таймлайну
+  if (elapsed < 13 && elapsed - lastStep > 0.75) {
+    audio.playFootstep();
+    lastStep = elapsed;
+  }
+  if (elapsed >= 13 && elapsed < 25 && elapsed - lastBeep > 1.2) {
+    audio.playRadarBeep(880);
+    lastBeep = elapsed;
+  }
+  if (elapsed > 25 && elapsed < 45.5) {
+    const interval = elapsed > 34 ? 0.42 : 0.65;
+    if (elapsed - lastBeat > interval) {
+      audio.playHeartbeat();
+      lastBeat = elapsed;
+    }
+  }
+
+  // Переключение актов
+  if (elapsed < 13) {
+    drawForestAct(t, camX, camY, camZ);
+  } else if (elapsed < 31.5) {
+    if (Math.abs(elapsed - 13) < 0.05) { glitchAmount = 1; audio.playStaticBurst(0.5, 0.35); }
+    if (Math.abs(elapsed - 25) < 0.05) { glitchAmount = 1.2; audio.playStaticBurst(0.7, 0.45); }
+    drawOscilloscopeAct(t, elapsed, camX, camY);
+  } else if (elapsed < 45.5) {
+    if (!twist2Triggered) {
+      twist2Triggered = true;
+      glitchAmount = 1.5;
+      audio.playStaticBurst(0.8, 0.5);
+    }
+    drawMirrorAct(t, elapsed, camX, camY);
+  } else if (elapsed < 49.5) {
+    if (!scareTriggered) {
+      scareTriggered = true;
+      glitchAmount = 2.0;
+      audio.playScareChord();
+      audio.playStaticBurst(1.5, 0.65);
+    }
+    drawFinaleAct(t);
+  } else {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#cc0000';
+    ctx.font = 'bold 26px "Courier New", Courier, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('ПЕРЕДАЧА ОКОНЧЕНА', width / 2, height / 2);
+    return;
+  }
+
+  drawPostProcessing(t);
+  drawCanvasSubtitles(elapsed);
+
+  requestAnimationFrame(loop);
+}
+
+startBtn.addEventListener('click', () => {
+  overlay.style.opacity = 0;
+  setTimeout(() => overlay.style.display = 'none', 1200);
+  recEl.style.opacity = 1;
+
+  audio = new HorrorAudio();
+  audio.startAtmosphere();
+  audio.playStaticBurst(0.6, 0.3);
+
+  isPlaying = true;
+  startTime = performance.now();
+  requestAnimationFrame(loop);
+});
+</script>
+</body>
+</html>
