@@ -1,0 +1,98 @@
+/* Общие стили страницы */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #1e293b;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 15px;
+}
+
+h2 {
+    color: #0f172a;
+    margin-top: 25px;
+    font-size: 1.3em;
+}
+
+.list-block {
+    margin-bottom: 30px;
+}
+
+/* 1. Маркированный список с символом огня (&#128293; = \1F525) */
+ul.fire-list {
+    list-style: none;
+    padding-left: 10px;
+}
+
+ul.fire-list li {
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 8px;
+}
+
+ul.fire-list li::before {
+    content: "\1F525"; /* Символ огня */
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 1.1em;
+}
+
+/* 2. Нумерованный список */
+ol.numbered-list {
+    padding-left: 25px;
+    color: #334155;
+}
+
+ol.numbered-list li {
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
+
+ol.numbered-list li::marker {
+    color: #2563eb;
+    font-weight: bold;
+}
+
+/* 3. Многоуровневый список */
+ul.multilevel-list {
+    list-style-type: square;
+    padding-left: 20px;
+}
+
+ul.multilevel-list > li {
+    margin-bottom: 15px;
+}
+
+/* Вложенный нумерованный уровень */
+ul.multilevel-list ol {
+    list-style-type: upper-roman;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    padding-left: 25px;
+    color: #475569;
+}
+
+/* Третий вложенный маркированный уровень */
+ul.multilevel-list ol ul {
+    list-style-type: circle;
+    margin-top: 5px;
+    padding-left: 20px;
+    color: #64748b;
+}
