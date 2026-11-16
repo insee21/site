@@ -19,7 +19,7 @@ document.write(
     ' ' +
     '<button onclick="location.href=\'09.11.html\'">09.11</button>'+
     ' ' +
-    '<button onclick="location.href=\'16.11.html\'">09.11</button>'
+    '<button onclick="location.href=\'16.11.html\'">16.11</button>'
 );
 
 
