@@ -8,6 +8,12 @@ body {
     padding: 20px;
 }
 
+/* Блок меню */
+#menu {
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+}
+
 .container {
     max-width: 800px;
     margin: 0 auto;
@@ -34,7 +40,7 @@ h2 {
     margin-bottom: 30px;
 }
 
-/* 1. Маркированный список с символом огня (&#128293; = \1F525) */
+/* 1. Маркированный список с символом огня (&#128293; = F525) */
 ul.fire-list {
     list-style: none;
     padding-left: 10px;
