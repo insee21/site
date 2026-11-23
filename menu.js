@@ -20,6 +20,9 @@ document.write(
     '<button onclick="location.href=\'09.11.html\'">09.11</button>'+
     ' ' +
     '<button onclick="location.href=\'16.11.html\'">16.11</button>'+
+    ' ' +
+    '<button onclick="location.href=\'23.11.html\'">23.11</button>'+
+    ' ' +
     '<button onclick="location.href=\'signal_0417_horror.html\'">horror</button>'+
     ' ' +
     '<button onclick="location.href=\'kuranty_slobodskoy.html\'">slb</button>'
