@@ -1,0 +1,93 @@
+<html>
+<head>
+    <title>Светофоры</title>
+</head>
+
+<body>
+
+<h2>Первый светофор (от кнопки)</h2>
+
+<div style="background:black; width:100px; padding:10px;">
+    <div id="red1" style="background:red; width:50px; height:50px; border-radius:50%;"></div>
+    <div id="yellow1" style="background:gray; width:50px; height:50px; border-radius:50%;"></div>
+    <div id="green1" style="background:gray; width:50px; height:50px; border-radius:50%;"></div>
+</div>
+
+<button onclick="change()">Переключить</button>
+
+
+<h2>Второй светофор (автоматический)</h2>
+
+<div style="background:black; width:100px; padding:10px;">
+    <div id="red2" style="background:red; width:50px; height:50px; border-radius:50%;"></div>
+    <div id="yellow2" style="background:gray; width:50px; height:50px; border-radius:50%;"></div>
+    <div id="green2" style="background:gray; width:50px; height:50px; border-radius:50%;"></div>
+</div>
+
+
+<script>
+
+let a = 0;
+
+function change() {
+
+    a++;
+
+    let r = document.getElementById('red1');
+    let y = document.getElementById('yellow1');
+    let g = document.getElementById('green1');
+
+    r.style.background = 'gray';
+    y.style.background = 'gray';
+    g.style.background = 'gray';
+
+    if (a == 1) {
+        r.style.background = 'red';
+    }
+
+    if (a == 2) {
+        y.style.background = 'yellow';
+    }
+
+    if (a == 3) {
+        g.style.background = 'green';
+        a = 0;
+    }
+}
+
+
+let b = 0;
+
+function auto() {
+
+    b++;
+
+    let r = document.getElementById('red2');
+    let y = document.getElementById('yellow2');
+    let g = document.getElementById('green2');
+
+    r.style.background = 'gray';
+    y.style.background = 'gray';
+    g.style.background = 'gray';
+
+    if (b == 1) {
+        r.style.background = 'red';
+    }
+
+    if (b == 2) {
+        y.style.background = 'yellow';
+    }
+
+    if (b == 3) {
+        g.style.background = 'green';
+        b = 0;
+    }
+
+}
+
+setInterval(auto, 2000);
+
+</script>
+
+</body>
+</html>
